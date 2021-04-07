@@ -1,0 +1,4 @@
+apiVersion: v1
+description: cluster maintenance related deployments
+name: cluster-maintenance
+version: 0.1.0

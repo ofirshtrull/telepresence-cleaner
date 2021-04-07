@@ -1,0 +1,4 @@
+telepresenceCleaner:
+  schedule: "0 0 * * *"
+  stalePeriodHours: 12
+  enabled: true

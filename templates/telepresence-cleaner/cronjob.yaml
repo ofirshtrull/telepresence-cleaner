@@ -1,0 +1,33 @@
+{{ if .Values.telepresenceCleaner.enabled }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: telepresence-cleaner
+spec:
+  schedule: {{ .Values.telepresenceCleaner.schedule }}
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: telepresence-cleaner
+          containers:
+            - name: telepresence-cleaner
+              image: "bitnami/kubectl"
+              command: ["/bin/bash", "-c"]
+              args:
+                - |
+                  set -ex
+
+                  STALE_DATE=$(date -d '{{ .Values.telepresenceCleaner.stalePeriodHours }} hour ago' -Iseconds --utc | sed 's/+0000/Z/') \
+                  namespaces=($(kubectl get ns -o jsonpath="{.items[*].metadata.name}")) \
+
+                  for namespace in "${namespaces[@]}"; \
+                  do \
+                  kubectl get -n=$namespace deployment -l telepresence -o go-template --template '{{`{{range .items}}{{.metadata.name}} {{.metadata.creationTimestamp}}{{"\n"}}{{end}}`}}' | \
+                  awk '$2 <= "'$STALE_DATE'" { print $1 }'| \
+                  xargs --no-run-if-empty kubectl -n=$namespace delete deployment
+                  done
+          restartPolicy: Never
+{{ end }}
