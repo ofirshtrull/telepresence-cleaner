@@ -25,9 +25,9 @@ spec:
 
                   for namespace in "${namespaces[@]}"; \
                   do \
-                  kubectl get -n=$namespace deployment -l telepresence -o go-template --template '{{`{{range .items}}{{.metadata.name}} {{.metadata.creationTimestamp}}{{"\n"}}{{end}}`}}' | \
+                  kubectl get -n=$namespace pod -l telepresence -o go-template --template '{{`{{range .items}}{{.metadata.name}} {{.metadata.creationTimestamp}}{{"\n"}}{{end}}`}}' | \
                   awk '$2 <= "'$STALE_DATE'" { print $1 }'| \
-                  xargs --no-run-if-empty kubectl -n=$namespace delete deployment
+                  xargs --no-run-if-empty kubectl -n=$namespace delete pod
                   done
           restartPolicy: Never
 {{ end }}
